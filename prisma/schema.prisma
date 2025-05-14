@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  BlogPost  BlogPost[]
+  Comment   Comment[]
+  Like      Like[]
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String
+  excerpt     String?
+  published   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  author      User      @relation(fields: [authorId], references: [id])
+  authorId    String
+  tags        Tag[]
+  comments    Comment[]
+  likes       Like[]
+  
+  @@index([authorId])
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  posts     BlogPost[]
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  content   String
+  name      String
+  email     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  post      BlogPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    String?
+  
+  @@index([postId])
+  @@index([userId])
+}
+
+model Like {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  post      BlogPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    String?
+  
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model Project {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  description   String
+  content       String?
+  technologies  String[]
+  demoUrl       String?
+  sourceUrl     String?
+  featured      Boolean   @default(false)
+  imageUrl      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model TimelineEvent {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  date        DateTime
+  type        String
+  link        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Hobby {
+  id          String         @id @default(cuid())
+  name        String
+  description String
+  rating      Float
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  reviews     HobbyReview[]
+}
+
+model HobbyReview {
+  id          String    @id @default(cuid())
+  name        String
+  author      String?
+  date        DateTime?
+  rating      Float
+  review      String
+  link        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  hobby       Hobby     @relation(fields: [hobbyId], references: [id], onDelete: Cascade)
+  hobbyId     String
+  
+  @@index([hobbyId])
+} 
